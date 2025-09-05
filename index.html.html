@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Workshop Interactivo: Ice Hockey Data Pro</title>
+  <style>
+    /* --- ESTILO GENERAL --- */
+    * { box-sizing: border-box; }
+
+    :root{
+      --bg1:#001e3c;
+      --bg2:#003b73;
+      --bg3:#1a237e;
+      --gold:#FFC107;
+      --green:#4CAF50;
+      --green2:#8BC34A;
+      --amber:#FF9800;
+      --text:#ffffff;
+      --glass: rgba(255,255,255,0.1);
+      --glass-2: rgba(255,255,255,0.2);
+      --border: rgba(255,255,255,0.2);
+      --border-soft: rgba(255,255,255,0.1);
+      --shadow: rgba(0,0,0,0.4);
+      --panel: rgba(0,0,0,0.4);
+      --danger:#F44336;
+      --danger2:#E57373;
+      --violet:#9C27B0;
+      --violet2:#BA68C8;
+      --orange2:#F57C00;
+      --success-grad: linear-gradient(45deg, #4CAF50, #8BC34A);
+      --error-grad: linear-gradient(45deg, #F44336, #E57373);
+      --btn-grad: linear-gradient(45deg, #4CAF50, #45a049);
+      --btn-grad-2: linear-gradient(45deg, #FF9800, #F57C00);
+      --table-head: rgba(0, 59, 115, 0.8);
+      --modal-grad: linear-gradient(135deg, #1a3a5f, #2c5f8a);
+      --card-hover: rgba(255,255,255,0.2);
+      --select-bg: rgba(255,255,255,0.1);
+      --select-bg-focus: rgba(255,255,255,0.2);
+      --option-bg:#0e2a4a;
+      --option-bg-alt:#123b6a;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
+      color: var(--text);
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Partículas de fondo animadas */
+    .particles {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none; z-index: 1;
+    }
+    .particle {
+      position: absolute;
+      width: 4px; height: 4px;
+      background: rgba(255, 193, 7, 0.6);
+      border-radius: 50%;
+      animation: float 6s infinite ease-in-out;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.7; }
+      50% { transform: translateY(-20px) rotate(180deg); opacity: 1; }
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+      position: relative;
+      z-index: 10;
+    }
+
+    header {
+      text-align: center;
+      padding: 40px 20px;
+      background: rgba(255, 193, 7, 0.15);
+      border-radius: 20px;
+      margin-bottom: 30px;
+      box-shadow: 0 8px 32px var(--shadow);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 193, 7, 0.3);
+      position: relative;
+      overflow: hidden;
+    }
+    header::before {
+      content: '';
+      position: absolute;
+      top: -50%; left: -50%;
+      width: 200%; height: 200%;
+      background: linear-gradient(45deg, transparent, rgba(255, 193, 7, 0.1), transparent);
+      animation: shine 4s infinite;
+    }
+    @keyframes shine { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    h1 {
+      font-size: 3.5em;
+      color: var(--gold);
+      text-shadow: 3px 3px 8px #000;
+      margin: 0;
+      letter-spacing: 3px;
+      position: relative;
+      z-index: 2;
+      animation: pulse 2s infinite ease-in-out;
+    }
+    @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+
+    /* Barra de progreso del usuario */
+    .user-progress {
+      background: var(--panel);
+      border-radius: 15px;
+      padding: 20px;
+      margin-bottom: 30px;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr auto;
+      gap: 16px;
+      align-items: center;
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border-soft);
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 15px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--green), var(--green2), var(--gold));
+      border-radius: 10px;
+      transition: width 0.5s ease;
+      animation: glow 2s infinite ease-in-out;
+    }
+    @keyframes glow {
+      0%, 100% { box-shadow: 0 0 5px var(--green); }
+      50% { box-shadow: 0 0 15px var(--green), 0 0 25px var(--green); }
+    }
+
+    h2 {
+      color: var(--green);
+      border-bottom: 3px solid var(--gold);
+      padding-bottom: 8px;
+      margin-top: 30px;
+      position: relative;
+    }
+    h2::after {
+      content: '';
+      position: absolute;
+      bottom: -3px; left: 0;
+      width: 0; height: 3px;
+      background: linear-gradient(90deg, var(--gold), var(--amber));
+      animation: expand 2s ease-out forwards;
+    }
+    @keyframes expand { to { width: 100%; } }
+
+    /* --- TARJETAS DE ACTIVIDADES --- */
+    .card-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 25px; margin: 30px 0;
+    }
+    .card {
+      background: var(--glass);
+      border-radius: 15px;
+      padding: 25px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      cursor: pointer;
+      border: 2px solid transparent;
+      position: relative;
+      overflow: hidden;
+      backdrop-filter: blur(10px);
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s;
+    }
+    .card:hover::before { left: 100%; }
+    .card:hover {
+      transform: translateY(-15px) scale(1.02);
+      background: var(--card-hover);
+      border-color: var(--gold);
+      box-shadow: 0 15px 35px rgba(255, 193, 7, 0.3);
+    }
+
+    .card h3 {
+      color: #AED581;
+      margin-top: 0;
+      font-size: 1.6em;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .card .difficulty {
+      display: inline-block;
+      padding: 8px 15px;
+      background: linear-gradient(45deg, #F44336, #E91E63);
+      color: white; border-radius: 25px;
+      font-size: 0.85em; margin-bottom: 15px;
+      box-shadow: 0 4px 8px rgba(244, 67, 54, 0.3);
+    }
+    .difficulty.medium { background: linear-gradient(45deg, #FF9800, #FFB74D); }
+    .difficulty.easy { background: linear-gradient(45deg, #4CAF50, #81C784); }
+    .difficulty.expert { background: linear-gradient(45deg, var(--violet), var(--violet2)); }
+    .card .points { color: #FFEB3B; font-weight: bold; font-size: 1.2em; text-shadow: 0 0 10px #FFEB3B; }
+
+    /* --- SISTEMA DE LOGROS --- */
+    .achievements {
+      background: var(--panel);
+      border-radius: 15px;
+      padding: 25px; margin: 30px 0;
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border-soft);
+    }
+    .achievement {
+      display: inline-block;
+      margin: 10px; padding: 15px 20px;
+      background: rgba(255, 193, 7, 0.2);
+      border-radius: 30px; border: 2px solid transparent;
+      transition: all 0.3s ease; cursor: pointer;
+    }
+    .achievement.unlocked {
+      background: linear-gradient(45deg, var(--gold), #FFD54F);
+      color: #000; border-color: var(--gold);
+      animation: unlock 0.5s ease-out;
+    }
+    @keyframes unlock {
+      0% { transform: scale(0.8); opacity: 0; }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* --- RANKING --- */
+    .ranking {
+      margin-top: 40px; background: var(--panel);
+      padding: 30px; border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      backdrop-filter: blur(15px);
+      border: 1px solid var(--border-soft);
+    }
+    .ranking h2 { text-align: center; color: var(--gold); font-size: 2.5em; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; backdrop-filter: blur(5px); }
+    th, td {
+      padding: 15px; text-align: left;
+      border-bottom: 1px solid var(--border-soft);
+      position: relative;
+    }
+    th { background: var(--table-head); color: var(--gold); font-size: 1.1em; font-weight: bold; }
+    tr:hover {
+      background: rgba(255, 193, 7, 0.2);
+      transform: scale(1.02);
+      transition: all 0.3s ease;
+    }
+    .top-player {
+      background: linear-gradient(90deg, rgba(255, 193, 7, 0.3), rgba(255, 193, 7, 0.1));
+      border-left: 4px solid var(--gold);
+    }
+
+    /* --- BOTONES --- */
+    .btn {
+      display: inline-block; margin: 15px 5px; padding: 12px 24px;
+      background: var(--btn-grad); color: white; border: none; border-radius: 30px;
+      font-size: 1.05em; font-weight: bold; cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      box-shadow: 0 6px 15px rgba(76, 175, 80, 0.3);
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .btn:hover {
+      background: linear-gradient(45deg, #45a049, #4CAF50);
+      transform: translateY(-3px);
+      box-shadow: 0 10px 25px rgba(76, 175, 80, 0.4);
+    }
+    .btn:active { transform: translateY(-1px); }
+    .btn.secondary {
+      background: var(--btn-grad-2);
+      box-shadow: 0 6px 15px rgba(255, 152, 0, 0.3);
+    }
+    .btn.secondary:hover {
+      background: linear-gradient(45deg, var(--orange2), var(--amber));
+      box-shadow: 0 10px 25px rgba(255, 152, 0, 0.4);
+    }
+    .btn.inline { padding: 8px 16px; margin: 0 0 0 8px; }
+
+    /* --- MODAL --- */
+    .modal {
+      display: none; position: fixed; z-index: 1000; left: 0; top: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.9); backdrop-filter: blur(10px);
+      justify-content: center; align-items: center; animation: fadeIn 0.3s ease;
+      padding: 15px;
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .modal-content {
+      background: var(--modal-grad);
+      padding: 40px; border-radius: 20px;
+      width: 95%; max-width: 900px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+      position: relative; color: #fff;
+      border: 1px solid var(--border);
+      animation: slideIn 0.3s ease;
+      max-height: 90vh; overflow-y: auto;
+    }
+    @keyframes slideIn { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    .close {
+      position: absolute; top: 15px; right: 25px;
+      font-size: 35px; color: #aaa; cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .close:hover { color: var(--gold); transform: scale(1.2); }
+
+    /* --- JUEGO --- */
+    .game-section {
+      margin-top: 25px; padding: 25px;
+      background: var(--glass); border-radius: 15px;
+      backdrop-filter: blur(5px);
+      border: 1px solid var(--border);
+    }
+
+    label { font-weight: 600; }
+
+    input, select, textarea {
+      padding: 15px; margin: 12px 0 18px 0; width: 100%;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 10px; background: var(--select-bg);
+      color: #fff; font-size: 1.05em; transition: all 0.3s ease;
+      appearance: none;
+    }
+    input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.75); }
+    input:focus, select:focus, textarea:focus {
+      outline: none; border-color: var(--gold); background: var(--select-bg-focus);
+      box-shadow: 0 0 0 3px rgba(255,193,7,0.15);
+    }
+
+    /* Mejora de legibilidad en opciones del select */
+    select option {
+      background-color: var(--option-bg);
+      color: #fff;
+    }
+    select option:nth-child(even){
+      background-color: var(--option-bg-alt);
+    }
+
+    .result {
+      margin-top: 12px; padding: 16px; border-radius: 12px;
+      font-weight: bold; font-size: 1.05em; text-align: center;
+      transition: all 0.3s ease; border: 1px solid var(--border);
+    }
+    .correct { background: var(--success-grad); }
+    .incorrect { background: var(--error-grad); }
+
+    /* Timer visual */
+    .timer {
+      position: fixed; top: 20px; right: 20px;
+      background: rgba(0, 0, 0, 0.8);
+      padding: 12px 16px; border-radius: 12px;
+      font-size: 1.05em; font-weight: bold;
+      z-index: 1000; backdrop-filter: blur(10px);
+      border: 2px solid var(--gold);
+    }
+
+    /* Drag placeholders (no se usan aquí pero conservados para consistencia de estilo) */
+    .setup-item {
+      background: var(--glass); margin: 10px 0; padding: 15px;
+      border-radius: 10px; cursor: grab; transition: all 0.3s ease;
+      border: 2px solid transparent;
+    }
+    .setup-item:hover { background: var(--glass-2); border-color: var(--gold); }
+    .setup-item.dragging { opacity: 0.5; transform: rotate(5deg); }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .user-progress{
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+      .btn.inline{ margin-top: 10px; }
+    }
+
+    /* Confetti */
+    .confetti { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; }
+    .confetti-piece {
+      position: absolute; width: 10px; height: 10px; background: var(--gold);
+      animation: fall 3s linear infinite;
+    }
+    @keyframes fall { to { transform: translateY(100vh) rotate(360deg); } }
+
+    /* --- Mini formulario nombre --- */
+    .name-box{
+      display:flex; flex-wrap:wrap; align-items:center; gap:8px;
+      background: rgba(255,255,255,0.08);
+      padding:10px 12px; border-radius:12px;
+    }
+    .name-badge{
+      padding:8px 12px; border-radius:999px;
+      background: rgba(255,193,7,0.18);
+      border:1px solid rgba(255,193,7,0.35);
+    }
+  </style>
+</head>
+<body>
+  <!-- Partículas animadas de fondo -->
+  <div class="particles" id="particles"></div>
+
+  <!-- Timer -->
+  <div class="timer" id="session-timer">
+    ⏱️ Sesión: <span id="timer-display">00:00</span>
+  </div>
+
+  <div class="container">
+    <header>
+      <h1>🏒 ICE HOCKEY DATA PRO</h1>
+      <p style="font-size: 1.3em; margin: 10px 0;">Un workshop interactivo, competitivo y ¡100% basado en tus documentos!</p>
+      <p style="opacity: 0.9;">Domina el arte de cubrir partidos de hockey profesionalmente</p>
+    </header>
+
+    <!-- Barra de progreso del usuario -->
+    <div class="user-progress">
+      <div>
+        <div class="name-box">
+          <h3 id="user-name-display" class="name-badge">👤 Invitado</h3>
+          <button class="btn inline secondary" onclick="openModal('name-modal')">Cambiar nombre</button>
+        </div>
+        <p id="user-points" style="margin:8px 0 0 0;">💎 0 puntos</p>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progress-fill" style="width: 0%;"></div>
+      </div>
+      <div>
+        <p id="user-level" style="margin:0;">🏆 Novato</p>
+        <p id="next-level" style="margin:0; opacity:0.9;">Próximo: Aficionado (100 pts)</p>
+      </div>
+      <div style="text-align:right;">
+        <button class="btn inline" onclick="resetProgress()">Reiniciar progreso</button>
+      </div>
+    </div>
+
+    <!-- Logros -->
+    <div class="achievements">
+      <h2>🏅 Logros</h2>
+      <div id="achievements-container">
+        <div class="achievement" data-achievement="primer-reto">🎯 Primer Reto</div>
+        <div class="achievement" data-achievement="experto-setup">⚙️ Experto Setup</div>
+        <div class="achievement" data-achievement="reportero-pro">📊 Reportero Pro</div>
+        <div class="achievement" data-achievement="detective">🔍 Detective</div>
+        <div class="achievement" data-achievement="perfeccionista">💎 Perfeccionista</div>
+        <div class="achievement" data-achievement="velocista">⚡ Velocista</div>
+      </div>
+    </div>
+
+    <section>
+      <h2>🎯 Bienvenido al Workshop</h2>
+      <p style="font-size: 1.2em; line-height: 1.8;">Este taller está diseñado para que aprendas, compitas y te diviertas mientras dominas todo sobre el cubrimiento de partidos de hockey. Basado en tus documentos, hemos creado una experiencia gamificada con retos, puntuaciones, logros y un <strong>ranking en tiempo real</strong>.</p>
+    </section>
+
+    <!-- Módulo 1: Historia y Reglas Básicas -->
+    <section>
+      <h2>📚 Módulo 1: Historia y Reglas Básicas</h2>
+      <div class="card-container">
+        <div class="card" onclick="openModal('history-modal')">
+          <h3>Historia y Reglas Básicas</h3>
+          <span class="difficulty easy">Fácil</span>
+          <p class="points">+10 puntos por pregunta (10 preguntas)</p>
+          <p>Aprende sobre la historia del hockey y sus reglas fundamentales.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Módulo 2: Herramientas de Cobertura -->
+    <section>
+      <h2>🛠️ Módulo 2: Herramientas de Cobertura</h2>
+      <div class="card-container">
+        <div class="card" onclick="openModal('tools-modal')">
+          <h3>Herramientas de Cobertura</h3>
+          <span class="difficulty medium">Medio</span>
+          <p class="points">+20 puntos por pregunta (10 preguntas)</p>
+          <p>Descubre las herramientas esenciales para cubrir un partido de hockey.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Módulo 3: Protocolos del Monitor -->
+    <section>
+      <h2>📋 Módulo 3: Protocolos del Monitor</h2>
+      <div class="card-container">
+        <div class="card" onclick="openModal('protocols-modal')">
+          <h3>Protocolos del Monitor</h3>
+          <span class="difficulty expert">Experto</span>
+          <p class="points">+30 puntos por pregunta (10 preguntas)</p>
+          <p>Aprende los protocolos clave para monitorear partidos de hockey.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- RANKING -->
+    <section class="ranking">
+      <h2>🏆 Ranking en Tiempo Real</h2>
+      <div style="text-align: center; margin: 20px 0;">
+        <button class="btn secondary" onclick="exportRanking()">📊 Exportar Datos</button>
+        <button class="btn secondary" onclick="showStats()">📈 Estadísticas</button>
+      </div>
+      <table id="ranking-table">
+        <thead>
+          <tr>
+            <th>🏅 Pos</th>
+            <th>👤 Nombre</th>
+            <th>💎 Puntos</th>
+            <th>🏆 Nivel</th>
+            <th>🎯 Logros</th>
+            <th>⏱️ Último Acceso</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Dinámico -->
+        </tbody>
+      </table>
+      <div style="text-align: center; margin-top: 20px;">
+        <button class="btn" onclick="resetRanking()">🔄 Reiniciar Ranking</button>
+        <button class="btn secondary" onclick="addTestData()">🧪 Datos de Prueba</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- MODALES -->
+
+  <!-- MODAL: Cambiar Nombre -->
+  <div id="name-modal" class="modal" aria-hidden="true">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('name-modal')">&times;</span>
+      <h2>✏️ Cambiar nombre</h2>
+      <div class="game-section">
+        <label for="name-input">Escribe tu nombre o alias</label>
+        <input id="name-input" type="text" placeholder="Ej: Ana G." />
+        <button class="btn" onclick="saveUserName()">Guardar</button>
+        <div id="name-result" class="result" style="display:none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Historia y Reglas Básicas (10 preguntas) -->
+  <div id="history-modal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('history-modal')">&times;</span>
+      <h2>📚 Historia y Reglas Básicas</h2>
+      <div class="game-section">
+        <h3>Pregunta 1:</h3>
+        <p>¿En qué ciudad se jugó el primer partido oficial de hockey sobre hielo?</p>
+        <select id="history-q1">
+          <option value="">Selecciona una opción</option>
+          <option value="Montreal">Montreal</option>
+          <option value="Toronto">Toronto</option>
+          <option value="Nueva York">Nueva York</option>
+          <option value="Vancouver">Vancouver</option>
+        </select>
+
+        <h3>Pregunta 2:</h3>
+        <p>¿Cuándo se jugó el primer partido oficial de hockey sobre hielo?</p>
+        <select id="history-q2">
+          <option value="">Selecciona una opción</option>
+          <option value="1875">1875</option>
+          <option value="1893">1893</option>
+          <option value="1917">1917</option>
+          <option value="1920">1920</option>
+        </select>
+
+        <h3>Pregunta 3:</h3>
+        <p>¿Cuánto dura un partido de hockey en tiempo reglamentario?</p>
+        <select id="history-q3">
+          <option value="">Selecciona una opción</option>
+          <option value="Tres periodos de 20 minutos">Tres periodos de 20 minutos</option>
+          <option value="Dos tiempos de 30 minutos">Dos tiempos de 30 minutos</option>
+          <option value="Un solo periodo de 60 minutos">Un solo periodo de 60 minutos</option>
+          <option value="Cuatro cuartos de 15 minutos">Cuatro cuartos de 15 minutos</option>
+        </select>
+
+        <h3>Pregunta 4:</h3>
+        <p>¿Cómo se llama el área de juego del hockey sobre hielo?</p>
+        <select id="history-q4">
+          <option value="">Selecciona una opción</option>
+          <option value="Rink">Rink</option>
+          <option value="Court">Court</option>
+          <option value="Field">Field</option>
+          <option value="Pitch">Pitch</option>
+        </select>
+
+        <h3>Pregunta 5:</h3>
+        <p>¿Cuántos jugadores por equipo están en el hielo durante el juego regular (incluyendo portero)?</p>
+        <select id="history-q5">
+          <option value="">Selecciona una opción</option>
+          <option value="6">6</option>
+          <option value="5">5</option>
+          <option value="7">7</option>
+          <option value="4">4</option>
+        </select>
+
+        <h3>Pregunta 6:</h3>
+        <p>¿Qué es el “offside” (fuera de juego) en hockey?</p>
+        <select id="history-q6">
+          <option value="">Selecciona una opción</option>
+          <option value="Cuando un atacante entra al área ofensiva antes que el puck">Cuando un atacante entra al área ofensiva antes que el puck</option>
+          <option value="Cuando el puck sale del hielo">Cuando el puck sale del hielo</option>
+          <option value="Cuando un jugador toca el puck con la mano">Cuando un jugador toca el puck con la mano</option>
+          <option value="Cuando el portero sale del área de portería">Cuando el portero sale del área de portería</option>
+        </select>
+
+        <h3>Pregunta 7:</h3>
+        <p>¿Qué es el “icing”?</p>
+        <select id="history-q7">
+          <option value="">Selecciona una opción</option>
+          <option value="Disparar el puck desde tu mitad hasta detrás de la línea de gol rival sin tocarlo">Disparar el puck desde tu mitad hasta detrás de la línea de gol rival sin tocarlo</option>
+          <option value="Golpear con el cuerpo a un rival">Golpear con el cuerpo a un rival</option>
+          <option value="Jugar con demasiados hombres">Jugar con demasiados hombres</option>
+          <option value="Un tiempo de castigo mayor">Un tiempo de castigo mayor</option>
+        </select>
+
+        <h3>Pregunta 8:</h3>
+        <p>¿Cuándo se realiza un “faceoff”?</p>
+        <select id="history-q8">
+          <option value="">Selecciona una opción</option>
+          <option value="Al inicio de cada periodo y tras detenciones">Al inicio de cada periodo y tras detenciones</option>
+          <option value="Solo al comienzo del partido">Solo al comienzo del partido</option>
+          <option value="Solo después de goles">Solo después de goles</option>
+          <option value="Nunca, se reanuda con saque de banda">Nunca, se reanuda con saque de banda</option>
+        </select>
+
+        <h3>Pregunta 9:</h3>
+        <p>¿Qué parte del cuerpo no puede usarse para anotar un gol intencionalmente?</p>
+        <select id="history-q9">
+          <option value="">Selecciona una opción</option>
+          <option value="El pie">El pie</option>
+          <option value="El stick">El stick</option>
+          <option value="El guante">El guante</option>
+          <option value="La cabeza">La cabeza</option>
+        </select>
+
+        <h3>Pregunta 10:</h3>
+        <p>¿Cuántos árbitros (incluyendo líneas) suelen dirigir un partido profesional moderno?</p>
+        <select id="history-q10">
+          <option value="">Selecciona una opción</option>
+          <option value="4">4</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="5">5</option>
+        </select>
+
+        <button class="btn" onclick="checkHistory()">Verificar Respuestas</button>
+        <div id="history-result" class="result" role="status"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Herramientas de Cobertura (10 preguntas) -->
+  <div id="tools-modal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('tools-modal')">&times;</span>
+      <h2>🛠️ Herramientas de Cobertura</h2>
+      <div class="game-section">
+        <h3>Pregunta 1:</h3>
+        <p>Si confirmas un gol al equipo equivocado, debes:</p>
+        <select id="tools-q1">
+          <option value="">Selecciona una opción</option>
+          <option value="Borrar el gol incorrecto y registrar el correcto">Borrar el gol incorrecto y registrar el correcto</option>
+          <option value="Confirmar ambos goles">Confirmar ambos goles</option>
+          <option value="Esperar al final del periodo">Esperar al final del periodo</option>
+          <option value="No hacer nada">No hacer nada</option>
+        </select>
+
+        <h3>Pregunta 2:</h3>
+        <p>¿Qué hacer si se otorga un penalti al equipo equivocado?</p>
+        <select id="tools-q2">
+          <option value="">Selecciona una opción</option>
+          <option value="Eliminar el penalti y asignarlo al equipo correcto">Eliminar el penalti y asignarlo al equipo correcto</option>
+          <option value="Ignorarlo">Ignorarlo</option>
+          <option value="Esperar al final">Esperar al final</option>
+          <option value="Reiniciar el partido">Reiniciar el partido</option>
+        </select>
+
+        <h3>Pregunta 3:</h3>
+        <p>Si el reloj oficial fue corregido, ¿cómo lo reflejas en tu cobertura?</p>
+        <select id="tools-q3">
+          <option value="">Selecciona una opción</option>
+          <option value="Ajustar manualmente el tiempo del evento afectado">Ajustar manualmente el tiempo del evento afectado</option>
+          <option value="No registrar cambios de tiempo">No registrar cambios de tiempo</option>
+          <option value="Borrar todos los eventos del periodo">Borrar todos los eventos del periodo</option>
+          <option value="Anotar en comentario y listo, sin ajustar">Anotar en comentario y listo, sin ajustar</option>
+        </select>
+
+        <h3>Pregunta 4:</h3>
+        <p>Para registrar tiros a puerta correctamente debes:</p>
+        <select id="tools-q4">
+          <option value="">Selecciona una opción</option>
+          <option value="Registrar solo los que ataja el portero o son gol">Registrar solo los que ataja el portero o son gol</option>
+          <option value="Contar todos los disparos, incluso fuera">Contar todos los disparos, incluso fuera</option>
+          <option value="Contar despejes como tiro">Contar despejes como tiro</option>
+          <option value="Contar passes como tiro">Contar passes como tiro</option>
+        </select>
+
+        <h3>Pregunta 5:</h3>
+        <p>Una asistencia válida requiere:</p>
+        <select id="tools-q5">
+          <option value="">Selecciona una opción</option>
+          <option value="Posesiones consecutivas del mismo equipo sin perder el control">Posesiones consecutivas del mismo equipo sin perder el control</option>
+          <option value="Cualquier pase antes del gol, aunque rebote en rivales múltiples">Cualquier pase antes del gol, aunque rebote en rivales múltiples</option>
+          <option value="Solo el último pase cuenta, nunca dos">Solo el último pase cuenta, nunca dos</option>
+          <option value="Que el pasador sea el capitán">Que el pasador sea el capitán</option>
+        </select>
+
+        <h3>Pregunta 6:</h3>
+        <p>Si cambian al portero en mitad del periodo, debes:</p>
+        <select id="tools-q6">
+          <option value="">Selecciona una opción</option>
+          <option value="Registrar evento de cambio de portero con tiempo exacto">Registrar evento de cambio de portero con tiempo exacto</option>
+          <option value="Ignorarlo si no detuvo tiros">Ignorarlo si no detuvo tiros</option>
+          <option value="Sumar sus tiros al portero anterior">Sumar sus tiros al portero anterior</option>
+          <option value="Actualizar solo al final">Actualizar solo al final</option>
+        </select>
+
+        <h3>Pregunta 7:</h3>
+        <p>Si el gol es anulado tras revisión, en tu registro:</p>
+        <select id="tools-q7">
+          <option value="">Selecciona una opción</option>
+          <option value="Eliminas el gol y anotas el motivo">Eliminas el gol y anotas el motivo</option>
+          <option value="Lo dejas pero con nota">Lo dejas pero con nota</option>
+          <option value="Lo cambias por penalti">Lo cambias por penalti</option>
+          <option value="No haces nada">No haces nada</option>
+        </select>
+
+        <h3>Pregunta 8:</h3>
+        <p>Para corregir un dorsal mal registrado en un penalti:</p>
+        <select id="tools-q8">
+          <option value="">Selecciona una opción</option>
+          <option value="Editar el evento y actualizar el jugador">Editar el evento y actualizar el jugador</option>
+          <option value="Borrar todo el periodo">Borrar todo el periodo</option>
+          <option value="Dejarlo, no afecta">Dejarlo, no afecta</option>
+          <option value="Crear un segundo penalti idéntico">Crear un segundo penalti idéntico</option>
+        </select>
+
+        <h3>Pregunta 9:</h3>
+        <p>En un tiroteo (shootout), los intentos se registran como:</p>
+        <select id="tools-q9">
+          <option value="">Selecciona una opción</option>
+          <option value="Intento de shootout con resultado (gol/atajado/fallado)">Intento de shootout con resultado (gol/atajado/fallado)</option>
+          <option value="Tiros a puerta normales">Tiros a puerta normales</option>
+          <option value="Penaltis menores">Penaltis menores</option>
+          <option value="Eventos de pase">Eventos de pase</option>
+        </select>
+
+        <h3>Pregunta 10:</h3>
+        <p>Para marcar “empty net” en un gol con portero retirado:</p>
+        <select id="tools-q10">
+          <option value="">Selecciona una opción</option>
+          <option value="Marcar la casilla de gol a puerta vacía (EN)">Marcar la casilla de gol a puerta vacía (EN)</option>
+          <option value="Sumarlo como penalti mayor">Sumarlo como penalti mayor</option>
+          <option value="Ignorarlo">Ignorarlo</option>
+          <option value="Asignarlo al portero suplente">Asignarlo al portero suplente</option>
+        </select>
+
+        <button class="btn" onclick="checkTools()">Verificar Respuestas</button>
+        <div id="tools-result" class="result" role="status"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Protocolos del Monitor (10 preguntas) -->
+  <div id="protocols-modal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('protocols-modal')">&times;</span>
+      <h2>📋 Protocolos del Monitor</h2>
+      <div class="game-section">
+        <h3>Pregunta 1:</h3>
+        <p>Si un partido sigue empatado tras 3 penales por lado, se define por:</p>
+        <select id="protocols-q1">
+          <option value="">Selecciona una opción</option>
+          <option value="Muerte súbita">Muerte súbita</option>
+          <option value="Otro tiempo extra">Otro tiempo extra</option>
+          <option value="Lanzamiento de dados">Lanzamiento de dados</option>
+          <option value="Sorteo">Sorteo</option>
+        </select>
+
+        <h3>Pregunta 2:</h3>
+        <p>En playoffs, los penales se usan:</p>
+        <select id="protocols-q2">
+          <option value="">Selecciona una opción</option>
+          <option value="Nunca, siempre se define en OT">Nunca, siempre se define en OT</option>
+          <option value="Solo en primera ronda">Solo en primera ronda</option>
+          <option value="En finales">En finales</option>
+          <option value="Siempre después de OT">Siempre después de OT</option>
+        </select>
+
+        <h3>Pregunta 3:</h3>
+        <p>Una doble menor (2+2) se maneja como:</p>
+        <select id="protocols-q3">
+          <option value="">Selecciona una opción</option>
+          <option value="Dos menores consecutivas de 2 minutos">Dos menores consecutivas de 2 minutos</option>
+          <option value="Una sola de 4 minutos">Una sola de 4 minutos</option>
+          <option value="Mayor de 5 minutos">Mayor de 5 minutos</option>
+          <option value="Descalificación">Descalificación</option>
+        </select>
+
+        <h3>Pregunta 4:</h3>
+        <p>Penalidades coincidentes 2 min por lado resultan en:</p>
+        <select id="protocols-q4">
+          <option value="">Selecciona una opción</option>
+          <option value="5v5, sin ventaja numérica">5v5, sin ventaja numérica</option>
+          <option value="5v4 para el equipo A">5v4 para el equipo A</option>
+          <option value="4v5 para el equipo A">4v5 para el equipo A</option>
+          <option value="3v3 automáticamente">3v3 automáticamente</option>
+        </select>
+
+        <h3>Pregunta 5:</h3>
+        <p>En temporada regular, el OT normalmente se juega:</p>
+        <select id="protocols-q5">
+          <option value="">Selecciona una opción</option>
+          <option value="3v3 por 5 minutos">3v3 por 5 minutos</option>
+          <option value="5v5 por 20 minutos">5v5 por 20 minutos</option>
+          <option value="4v4 por 10 minutos">4v4 por 10 minutos</option>
+          <option value="2v2 por 3 minutos">2v2 por 3 minutos</option>
+        </select>
+
+        <h3>Pregunta 6:</h3>
+        <p>Un gol con portero retirado (EN contra) se acredita:</p>
+        <select id="protocols-q6">
+          <option value="">Selecciona una opción</option>
+          <option value="Como gol de puerta vacía, sin portero">Como gol de puerta vacía, sin portero</option>
+          <option value="Al portero suplente">Al portero suplente</option>
+          <option value="Como tiro no a puerta">Como tiro no a puerta</option>
+          <option value="Como penalidad de equipo">Como penalidad de equipo</option>
+        </select>
+
+        <h3>Pregunta 7:</h3>
+        <p>¿Cuánto dura normalmente un tiempo fuera (timeout) por equipo?</p>
+        <select id="protocols-q7">
+          <option value="">Selecciona una opción</option>
+          <option value="30 segundos">30 segundos</option>
+          <option value="60 segundos">60 segundos</option>
+          <option value="90 segundos">90 segundos</option>
+          <option value="2 minutos">2 minutos</option>
+        </select>
+
+        <h3>Pregunta 8:</h3>
+        <p>Si hay gol en power play y quedaba tiempo en la penalidad menor:</p>
+        <select id="protocols-q8">
+          <option value="">Selecciona una opción</option>
+          <option value="Se termina la penalidad menor">Se termina la penalidad menor</option>
+          <option value="La penalidad continúa">La penalidad continúa</option>
+          <option value="Se cambia por penalidad mayor">Se cambia por penalidad mayor</option>
+          <option value="Se cambia por penalidad coincidente">Se cambia por penalidad coincidente</option>
+        </select>
+
+        <h3>Pregunta 9:</h3>
+        <p>Tras revisión por posible interferencia al portero, se confirma gol. Debes:</p>
+        <select id="protocols-q9">
+          <option value="">Selecciona una opción</option>
+          <option value="Mantener el gol y anotar 'revisión confirmada'">Mantener el gol y anotar 'revisión confirmada'</option>
+          <option value="Eliminar el gol por protocolo">Eliminar el gol por protocolo</option>
+          <option value="Sumar un penalti al portero">Sumar un penalti al portero</option>
+          <option value="Cambiar el goleador por el portero">Cambiar el goleador por el portero</option>
+        </select>
+
+        <h3>Pregunta 10:</h3>
+        <p>Si un equipo alinea a seis jugadores sin portero de forma legal (extra attacker):</p>
+        <select id="protocols-q10">
+          <option value="">Selecciona una opción</option>
+          <option value="No es penalidad, es estrategia permitida">No es penalidad, es estrategia permitida</option>
+          <option value="Penalidad por demasiados hombres">Penalidad por demasiados hombres</option>
+          <option value="Anulación del gol previo">Anulación del gol previo</option>
+          <option value="Repetición de la jugada">Repetición de la jugada</option>
+        </select>
+
+        <button class="btn" onclick="checkProtocols()">Verificar Respuestas</button>
+        <div id="protocols-result" class="result" role="status"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONFETTI LAYER -->
+  <div id="confetti" class="confetti" aria-hidden="true"></div>
+
+  <script>
+    /*********************************
+     * UTILIDADES GENERALES & ESTADO *
+     *********************************/
+    const STATE = {
+      name: localStorage.getItem('ihdp_name') || 'Invitado',
+      points: parseInt(localStorage.getItem('ihdp_points') || '0', 10),
+      achievements: JSON.parse(localStorage.getItem('ihdp_achievements') || '{}'),
+      completed: JSON.parse(localStorage.getItem('ihdp_completed') || '{"history":false,"tools":false,"protocols":false}'),
+      startTime: Date.now(),
+      lastAwardTime: 0
+    };
+
+    const LEVELS = [
+      { name: 'Novato', min: 0 },
+      { name: 'Aficionado', min: 100 },
+      { name: 'Practicante', min: 250 },
+      { name: 'Reportero', min: 500 },
+      { name: 'Pro', min: 900 },
+      { name: 'Leyenda', min: 1300 }
+    ];
+
+    const MODULE_SCORES = { history: 0, tools: 0, protocols: 0 };
+
+    /*********************
+     * PARTICULAS FONDO  *
+     *********************/
+    function initParticles(){
+      const container = document.getElementById('particles');
+      const count = Math.min(120, Math.floor(window.innerWidth/10));
+      for(let i=0;i<count;i++){
+        const p = document.createElement('div');
+        p.className = 'particle';
+        p.style.left = Math.random()*100 + '%';
+        p.style.top = Math.random()*100 + '%';
+        p.style.animationDelay = (Math.random()*6)+'s';
+        p.style.opacity = (0.4 + Math.random()*0.6).toFixed(2);
+        container.appendChild(p);
+      }
+    }
+
+    /****************
+     * TEMPORIZADOR *
+     ****************/
+    function initTimer(){
+      const display = document.getElementById('timer-display');
+      setInterval(()=>{
+        const elapsed = Date.now() - STATE.startTime;
+        const s = Math.floor(elapsed/1000);
+        const mm = String(Math.floor(s/60)).padStart(2,'0');
+        const ss = String(s%60).padStart(2,'0');
+        display.textContent = `${mm}:${ss}`;
+      }, 1000);
+    }
+
+    /********************
+     * MODALES GENERALES*
+     ********************/
+    function openModal(modalId) {
+      document.getElementById(modalId).style.display = "flex";
+    }
+    function closeModal(modalId) {
+      document.getElementById(modalId).style.display = "none";
+    }
+
+    /****************
+     * NOMBRE USUARIO
+     ****************/
+    function renderName(){
+      document.getElementById('user-name-display').textContent = `👤 ${STATE.name}`;
+    }
+    function openNamePrefill(){
+      const input = document.getElementById('name-input');
+      input.value = STATE.name || '';
+    }
+    function saveUserName(){
+      const val = (document.getElementById('name-input').value || '').trim();
+      const res = document.getElementById('name-result');
+      if(!val){
+        res.style.display = 'block';
+        res.className = 'result incorrect';
+        res.textContent = 'Por favor, ingresa un nombre válido.';
+        return;
+      }
+      STATE.name = val;
+      localStorage.setItem('ihdp_name', STATE.name);
+      renderName();
+      updateRanking(true);
+      res.style.display = 'block';
+      res.className = 'result correct';
+      res.textContent = '¡Nombre guardado correctamente!';
+      setTimeout(()=>{ closeModal('name-modal'); res.style.display='none'; }, 900);
+    }
+
+    /****************
+     * PROGRESO / XP
+     ****************/
+    function getLevel(points){
+      let current = LEVELS[0], next = LEVELS[1];
+      for(let i=0;i<LEVELS.length;i++){
+        if(points >= LEVELS[i].min) current = LEVELS[i];
+        if(LEVELS[i+1] && points < LEVELS[i+1].min){ next = LEVELS[i+1]; break; }
+        if(!LEVELS[i+1]) { next = null; }
+      }
+      return { current, next };
+    }
+
+    function renderProgress(){
+      document.getElementById('user-points').textContent = `💎 ${STATE.points} puntos`;
+      const { current, next } = getLevel(STATE.points);
+      document.getElementById('user-level').textContent = `🏆 ${current.name}`;
+      if(next){
+        document.getElementById('next-level').textContent = `Próximo: ${next.name} (${next.min} pts)`;
+        const span = next.min - current.min;
+        const into = STATE.points - current.min;
+        const pct = Math.max(0, Math.min(100, (into/span)*100));
+        document.getElementById('progress-fill').style.width = pct + '%';
+      }else{
+        document.getElementById('next-level').textContent = `¡Nivel máximo alcanzado!`;
+        document.getElementById('progress-fill').style.width = '100%';
+      }
+    }
+
+    function addPoints(pts){
+      STATE.points += pts;
+      localStorage.setItem('ihdp_points', String(STATE.points));
+      renderProgress();
+      updateRanking(true);
+      if(pts > 0) triggerConfetti();
+      maybeUnlockAchievements();
+    }
+
+    function resetProgress(){
+      if(!confirm('¿Seguro que deseas reiniciar tu progreso (puntos, módulos y logros locales)?')) return;
+      STATE.points = 0;
+      STATE.achievements = {};
+      STATE.completed = { history:false, tools:false, protocols:false };
+      MODULE_SCORES.history = 0;
+      MODULE_SCORES.tools = 0;
+      MODULE_SCORES.protocols = 0;
+      localStorage.setItem('ihdp_points', '0');
+      localStorage.setItem('ihdp_achievements', '{}');
+      localStorage.setItem('ihdp_completed', JSON.stringify(STATE.completed));
+      renderProgress();
+      renderAchievements();
+      updateRanking(true);
+      alert('Progreso reiniciado.');
+    }
+
+    /****************
+     * LOGROS (BASIC)
+     ****************/
+    function renderAchievements(){
+      document.querySelectorAll('.achievement').forEach(el=>{
+        const key = el.dataset.achievement;
+        if(STATE.achievements[key]) el.classList.add('unlocked');
+        else el.classList.remove('unlocked');
+      });
+    }
+    function unlockAchievement(key){
+      if(STATE.achievements[key]) return;
+      STATE.achievements[key] = true;
+      localStorage.setItem('ihdp_achievements', JSON.stringify(STATE.achievements));
+      renderAchievements();
+    }
+    function maybeUnlockAchievements(){
+      // Primer reto: cuando completa cualquier módulo por primera vez
+      if((STATE.completed.history || STATE.completed.tools || STATE.completed.protocols) && !STATE.achievements['primer-reto']){
+        unlockAchievement('primer-reto');
+      }
+      // Reportero Pro: superar 500 puntos
+      if(STATE.points >= 500 && !STATE.achievements['reportero-pro']){
+        unlockAchievement('reportero-pro');
+      }
+      // Detective: puntaje perfecto en Historia (100)
+      if(MODULE_SCORES.history === 100 && !STATE.achievements['detective']){
+        unlockAchievement('detective');
+      }
+      // Perfeccionista: completar los 3 módulos
+      if(STATE.completed.history && STATE.completed.tools && STATE.completed.protocols && !STATE.achievements['perfeccionista']){
+        unlockAchievement('perfeccionista');
+      }
+      // Velocista: responder un módulo en menos de 60s desde el inicio de sesión
+      const elapsed = (Date.now() - STATE.startTime)/1000;
+      if(elapsed < 60 && (STATE.completed.history || STATE.completed.tools || STATE.completed.protocols) && !STATE.achievements['velocista']){
+        unlockAchievement('velocista');
+      }
+      // Experto Setup (conservamos el nombre del logro): perfecto en Herramientas (200)
+      if(MODULE_SCORES.tools === 200 && !STATE.achievements['experto-setup']){
+        unlockAchievement('experto-setup');
+      }
+    }
+
+    /***********
+     * CONFETTI
+     ***********/
+    function triggerConfetti(){
+      const layer = document.getElementById('confetti');
+      const pieces = 80;
+      for(let i=0;i<pieces;i++){
+        const c = document.createElement('div');
+        c.className = 'confetti-piece';
+        c.style.left = (Math.random()*100)+'%';
+        c.style.background = Math.random()>.5 ? '#FFC107' : '#8BC34A';
+        c.style.animationDuration = (2 + Math.random()*2)+'s';
+        c.style.opacity = (0.6+Math.random()*0.4).toFixed(2);
+        layer.appendChild(c);
+        setTimeout(()=>layer.removeChild(c), 3500);
+      }
+    }
+
+    /***********
+     * RANKING
+     ***********/
+    function getRanking(){
+      try{
+        return JSON.parse(localStorage.getItem('ihdp_ranking') || '[]');
+      }catch(e){ return []; }
+    }
+    function saveRanking(list){
+      localStorage.setItem('ihdp_ranking', JSON.stringify(list));
+    }
+    function updateRanking(renderNow){
+      const ranking = getRanking();
+      const now = new Date().toLocaleString();
+      const { current } = getLevel(STATE.points);
+
+      // buscar usuario por nombre
+      const idx = ranking.findIndex(r => r.name === STATE.name);
+      const achievementsCount = Object.values(STATE.achievements).filter(Boolean).length;
+
+      if(idx >= 0){
+        ranking[idx].points = STATE.points;
+        ranking[idx].level = current.name;
+        ranking[idx].achievements = achievementsCount;
+        ranking[idx].lastSeen = now;
+      }else{
+        ranking.push({
+          name: STATE.name,
+          points: STATE.points,
+          level: current.name,
+          achievements: achievementsCount,
+          lastSeen: now
+        });
+      }
+
+      ranking.sort((a,b)=> b.points - a.points);
+      saveRanking(ranking);
+      if(renderNow) renderRankingTable();
+    }
+    function renderRankingTable(){
+      const tbody = document.querySelector('#ranking-table tbody');
+      tbody.innerHTML = '';
+      const ranking = getRanking();
+      ranking.forEach((r, i)=>{
+        const tr = document.createElement('tr');
+        if(i===0) tr.classList.add('top-player');
+        tr.innerHTML = `
+          <td>${i+1}</td>
+          <td>${r.name}</td>
+          <td>${r.points}</td>
+          <td>${r.level}</td>
+          <td>${r.achievements}</td>
+          <td>${r.lastSeen}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+    function resetRanking(){
+      if(!confirm('¿Seguro que deseas reiniciar el ranking local?')) return;
+      localStorage.removeItem('ihdp_ranking');
+      renderRankingTable();
+    }
+    function addTestData(){
+      const samples = [
+        {name:'Sofía', points: 380, level:'Practicante', achievements:2},
+        {name:'Carlos', points: 920, level:'Pro', achievements:4},
+        {name:'Diego', points: 120, level:'Aficionado', achievements:1},
+        {name:'Lucía', points: 610, level:'Reportero', achievements:3},
+      ];
+      const now = new Date().toLocaleString();
+      const ranking = getRanking();
+      samples.forEach(s=>{
+        const idx = ranking.findIndex(r=>r.name===s.name);
+        const row = { ...s, lastSeen: now };
+        if(idx>=0) ranking[idx]=row; else ranking.push(row);
+      });
+      ranking.sort((a,b)=>b.points-a.points);
+      saveRanking(ranking);
+      renderRankingTable();
+    }
+    function exportRanking(){
+      const data = getRanking();
+      const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'ranking_ice_hockey_data_pro.json';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+    function showStats(){
+      const r = getRanking();
+      if(!r.length){ alert('No hay datos en el ranking.'); return; }
+      const max = r[0];
+      const min = r[r.length-1];
+      const avg = Math.round(r.reduce((acc,x)=>acc+x.points,0)/r.length);
+      alert(
+`📈 Estadísticas del ranking
+Participantes: ${r.length}
+Máximo: ${max.name} (${max.points})
+Mínimo: ${min.name} (${min.points})
+Promedio: ${avg} puntos`);
+    }
+
+    /**********************
+     * VERIFICACIÓN MÓDULOS
+     **********************/
+    function checkHistory() {
+      const answers = {
+        q1: "Montreal",
+        q2: "1875",
+        q3: "Tres periodos de 20 minutos",
+        q4: "Rink",
+        q5: "6",
+        q6: "Cuando un atacante entra al área ofensiva antes que el puck",
+        q7: "Disparar el puck desde tu mitad hasta detrás de la línea de gol rival sin tocarlo",
+        q8: "Al inicio de cada periodo y tras detenciones",
+        q9: "El pie",
+        q10: "4"
+      };
+      let score = 0;
+      for(let i=1;i<=10;i++){
+        const val = document.getElementById(`history-q${i}`).value;
+        if(val === answers[`q${i}`]) score += 10;
+      }
+
+      const resultDiv = document.getElementById("history-result");
+      resultDiv.innerHTML = `Puntuación obtenida: ${score} / 100`;
+      resultDiv.className = "result " + (score>0 ? "correct" : "incorrect");
+
+      // Control de doble conteo: solo sumar una vez el mejor resultado del módulo
+      if(score > MODULE_SCORES.history){
+        const delta = score - MODULE_SCORES.history;
+        MODULE_SCORES.history = score;
+        addPoints(delta);
+      }
+      STATE.completed.history = true;
+      localStorage.setItem('ihdp_completed', JSON.stringify(STATE.completed));
+      maybeUnlockAchievements();
+    }
+
+    function checkTools() {
+      const answers = {
+        q1: "Borrar el gol incorrecto y registrar el correcto",
+        q2: "Eliminar el penalti y asignarlo al equipo correcto",
+        q3: "Ajustar manualmente el tiempo del evento afectado",
+        q4: "Registrar solo los que ataja el portero o son gol",
+        q5: "Posesiones consecutivas del mismo equipo sin perder el control",
+        q6: "Registrar evento de cambio de portero con tiempo exacto",
+        q7: "Eliminas el gol y anotas el motivo",
+        q8: "Editar el evento y actualizar el jugador",
+        q9: "Intento de shootout con resultado (gol/atajado/fallado)",
+        q10:"Marcar la casilla de gol a puerta vacía (EN)"
+      };
+
+      let score = 0;
+      for(let i=1;i<=10;i++){
+        const val = document.getElementById(`tools-q${i}`).value;
+        if(val === answers[`q${i}`]) score += 20;
+      }
+
+      const resultDiv = document.getElementById("tools-result");
+      resultDiv.innerHTML = `Puntuación obtenida: ${score} / 200`;
+      resultDiv.className = "result " + (score>0 ? "correct" : "incorrect");
+
+      if(score > MODULE_SCORES.tools){
+        const delta = score - MODULE_SCORES.tools;
+        MODULE_SCORES.tools = score;
+        addPoints(delta);
+      }
+      STATE.completed.tools = true;
+      localStorage.setItem('ihdp_completed', JSON.stringify(STATE.completed));
+      maybeUnlockAchievements();
+    }
+
+    function checkProtocols() {
+      const answers = {
+        q1: "Muerte súbita",
+        q2: "Nunca, siempre se define en OT",
+        q3: "Dos menores consecutivas de 2 minutos",
+        q4: "5v5, sin ventaja numérica",
+        q5: "3v3 por 5 minutos",
+        q6: "Como gol de puerta vacía, sin portero",
+        q7: "30 segundos",
+        q8: "Se termina la penalidad menor",
+        q9: "Mantener el gol y anotar 'revisión confirmada'",
+        q10: "No es penalidad, es estrategia permitida"
+      };
+
+      let score = 0;
+      for(let i=1;i<=10;i++){
+        const val = document.getElementById(`protocols-q${i}`).value;
+        if(val === answers[`q${i}`]) score += 30;
+      }
+
+      const resultDiv = document.getElementById("protocols-result");
+      resultDiv.innerHTML = `Puntuación obtenida: ${score} / 300`;
+      resultDiv.className = "result " + (score>0 ? "correct" : "incorrect");
+
+      if(score > MODULE_SCORES.protocols){
+        const delta = score - MODULE_SCORES.protocols;
+        MODULE_SCORES.protocols = score;
+        addPoints(delta);
+      }
+      STATE.completed.protocols = true;
+      localStorage.setItem('ihdp_completed', JSON.stringify(STATE.completed));
+      maybeUnlockAchievements();
+    }
+
+    /*****************
+     * ACCESIBILIDAD *
+     *****************/
+    // Cerrar modal con ESC
+    window.addEventListener('keydown', (e)=>{
+      if(e.key === 'Escape'){
+        document.querySelectorAll('.modal').forEach(m=> m.style.display='none');
+      }
+    });
+
+    /**********************
+     * INICIALIZACIÓN APP *
+     **********************/
+    function init(){
+      initParticles();
+      initTimer();
+      renderName();
+      renderProgress();
+      renderAchievements();
+      updateRanking(true);
+      openNamePrefill();
+
+      // Abrir modal de nombre la primera vez si aún es "Invitado"
+      const firstVisit = localStorage.getItem('ihdp_first_visit') !== 'no';
+      if(STATE.name === 'Invitado' && firstVisit){
+        openModal('name-modal');
+      }
+      localStorage.setItem('ihdp_first_visit','no');
+    }
+
+    // Al abrir modal de nombre, pre-cargar valor
+    document.getElementById('name-modal').addEventListener('transitionend', openNamePrefill);
+    // También cuando se abre con botón
+    document.querySelector('[onclick="openModal(\'name-modal\')"]').addEventListener('click', openNamePrefill);
+
+    window.addEventListener('load', init);
+  </script>
+</body>
+</html>
